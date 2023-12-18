@@ -1,6 +1,7 @@
 #include <EEPROM_int.h>
 #include <Encoder.h>
-#include <LinearActuator.h>
+#include <TwoLinearActuator.h>
+#include <Arduino.h>
 
 
 // put function declarations here:
@@ -8,15 +9,19 @@
 void clear_EEPROM();
 
 //pins
-#define motor_speed_1 6
-#define motor_direction_1 7
+#define motor_speed_1 7
+#define motor_direction_1 6
+#define motor_speed_2 9
+#define motor_direction_2 8
 #define encoder_1A 4
-#define encoder_1B 3
-#define reset_pin 8
+#define encoder_1B 2
+#define encoder_2A 5
+#define encoder_2B 3
+#define reset_pin 10
 
 
 // variables
-LinearActuator LA1(motor_speed_1,motor_direction_1,encoder_1A,encoder_1B);
+TwoLinearActuator LA(motor_speed_1,motor_direction_1,encoder_1A,encoder_1B,motor_speed_2,motor_direction_2,encoder_2A,encoder_2B);
 float serialInput;
 const int eeAddress=0;
 int prev_enc_count;
@@ -24,36 +29,38 @@ int prev_enc_count;
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
-
+  Serial.println("Starting");
   pinMode(reset_pin,INPUT_PULLUP);
+  /*
   prev_enc_count=readIntFromEEPROM(eeAddress);
-  if (!(prev_enc_count>LA1.max_count || prev_enc_count<=0)){
-    LA1.Enc.write(prev_enc_count);
+  if (!(prev_enc_count>LA.max_count || prev_enc_count<=0)){
+    LA.Enc1.write(prev_enc_count);
+    LA.Enc2.write(prev_enc_count);
   }
   else{
-    LA1.reset_to_zero(); // move to home position, 0mm
+    LA.reset_to_zero(); // move to home position, 0mm
   }
+  */
+  LA.reset_to_zero();
+  LA.motor_moveto(50);
   Serial.print("Current postion:");
-  Serial.println(LA1.get_enc_dist());
-  //motor_move(150);
+  Serial.println(LA.get_enc_dist());
 
 }
 
 void loop() {
- //Serial.println(Enc1.read());
-
-  
- if (Serial.available()) {
-    // read the incoming byte:
-    serialInput = Serial.parseFloat();
-    LA1.motor_moveto(serialInput);
-    writeIntIntoEEPROM(eeAddress,LA1.Enc.read());
-    Serial.println(LA1.Enc.read()*LA1.dist_per_count);
+  if (Serial.available()) {
+      // read the incoming byte:
+      serialInput = Serial.parseFloat();
+      LA.motor_moveto(serialInput);
+      writeIntIntoEEPROM(eeAddress,LA.Enc1.read());
+      Serial.println(LA.Enc1.read()*LA.dist_per_count);
+      Serial.println(LA.Enc2.read()*LA.dist_per_count);
+    }
+  if (digitalRead(reset_pin)==0){
+    LA.reset_to_zero();
+    clear_EEPROM();
   }
-if (digitalRead(reset_pin)==0){
-  LA1.reset_to_zero();
-  clear_EEPROM();
-}
 }
 
 void clear_EEPROM(){

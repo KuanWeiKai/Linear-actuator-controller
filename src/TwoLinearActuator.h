@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <Encoder.h>
 
-class LinearActuator{
+class TwoLinearActuator{
     private:
     byte motor_speed_pin;
     byte motor_direction_pin;
@@ -15,14 +15,16 @@ class LinearActuator{
     int sgn(int x);
 
     public:
-    Encoder Enc;
+    Encoder Enc1;
+    Encoder Enc2;
     int max_count;
     double encoder_dist;
     double max_dist;
     double dist_per_count;
 
-    LinearActuator(byte motor_speed_pin,byte motor_direction_pin,byte encoder_A_pin, byte encoder_B_pin,int max_count=5300,
-    double max_dist=250.0);
+    TwoLinearActuator(byte motor_speed_pin1,byte motor_direction_pin1,byte encoder_A_pin1, byte encoder_B_pin1,
+                    byte motor_speed_pin2,byte motor_direction_pin2,byte encoder_A_pin2, byte encoder_B_pin2,
+                    int max_count=5330,double max_dist=250.0);
     
 
     void reset_to_zero();
